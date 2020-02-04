@@ -428,17 +428,6 @@ void WaveBank::UnregisterInstance(_In_ IVoiceNotify* instance)
 }
 
 
-HANDLE WaveBank::GetAsyncHandle() const noexcept
-{
-    if (pImpl)
-    {
-        return pImpl->mReader.GetAsyncHandle();
-    }
-
-    return nullptr;
-}
-
-
 // Public accessors.
 bool WaveBank::IsPrepared() const noexcept
 {
@@ -578,3 +567,31 @@ void WaveBank::FillSubmitBuffer(unsigned int index, XAUDIO2_BUFFER& buffer) cons
 }
 
 #endif
+
+
+HANDLE WaveBank::GetAsyncHandle() const noexcept
+{
+    if (pImpl)
+    {
+        return pImpl->mReader.GetAsyncHandle();
+    }
+
+    return nullptr;
+}
+
+
+_Use_decl_annotations_
+bool WaveBank::GetPrivateData(unsigned int index, void* data, size_t datasize)
+{
+    if (index >= pImpl->mReader.Count())
+        return false;
+
+    if (!data)
+        return false;
+
+    if (datasize != sizeof(WaveBankReader::Metadata))
+        return false;
+
+    auto ptr = reinterpret_cast<WaveBankReader::Metadata*>(data);
+    return SUCCEEDED(pImpl->mReader.GetMetadata(index, *ptr));
+}
